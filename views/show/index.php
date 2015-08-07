@@ -16,7 +16,6 @@ use Studip\Button, Studip\LinkButton;
 </pre>
 
 
-
 <? if (isset($msg)): ?>
     <?= parse_msg($msg) ?>
 <? endif; ?>
@@ -107,6 +106,16 @@ use Studip\Button, Studip\LinkButton;
             <?= htmlReady($tutor['Email']) ?>
         </td>
         <td>
+	    <? $db = DbManager::get();
+        	$st = $db->prepare("SELECT user_online.last_lifesign as lifesign                            
+				FROM user_online
+                            WHERE user_id = ?");
+        	$st->execute(array($id));
+        	while ($row = $st->fetch(PDO::FETCH_ASSOC)) { 
+            		$tutor["changed_timestamp"] = $row['lifesign'];
+		}
+	    ?>
+
         <? if ($tutor["changed_timestamp"] != "") :
             $inactive = time() - $tutor['changed_timestamp'];
             if ($inactive < 3600 * 24) {
@@ -131,7 +140,6 @@ use Studip\Button, Studip\LinkButton;
                             LEFT JOIN seminare USING (Seminar_id)
                             WHERE user_id = ? ORDER BY kurs_name");
         	$st->execute(array($id));
-        	$ret = array();
         	while ($row = $st->fetch(PDO::FETCH_ASSOC)) { ?>
             		<a href="<?=URLHelper::getURL('dispatch.php/course/overview', array('cid' => $row['sem_id']))?>"><?=$row['kurs_name']?></a> 
 			<br/> 	
@@ -261,6 +269,17 @@ use Studip\Button, Studip\LinkButton;
             <?= htmlReady($user['Email']) ?>
         </td>
         <td>
+	      <? $db = DbManager::get();
+        	$st = $db->prepare("SELECT user_online.last_lifesign as lifesign                            
+				FROM user_online
+                            WHERE user_id = ?");
+        	$st->execute(array($id));
+        	while ($row = $st->fetch(PDO::FETCH_ASSOC)) { 
+            		$user["changed_timestamp"] = $row['lifesign'];
+		}
+	       ?>
+
+
         <? if ($user["changed_timestamp"] != "") :
             $inactive = time() - $user['changed_timestamp'];
             if ($inactive < 3600 * 24) {

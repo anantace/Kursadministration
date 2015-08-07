@@ -29,13 +29,16 @@ class ShowController extends StudIPController {
 		$this->sem_id = $this->course->getID();
 		$this->seminar = new Seminar($this->sem_id);
 	 }
-	 if ($GLOBALS['perm']->have_studip_perm('tutor', $GLOBALS['SessSemName'][1])) {
+	 //if ($GLOBALS['perm']->have_studip_perm('tutor', $GLOBALS['SessSemName'][1])) {
             $widget = new ActionsWidget();
-            $widget->addLink(_('Kursteilnehmer'),
-
-                             $this->url_for('show'), false);
+	     $widget->addLink(_('Kursverwaltung'), $this->url_for('show/course'), false);
+            $widget->addLink(_('Teilnehmerverwaltung'), $this->url_for('show'), false);
             Sidebar::get()->addWidget($widget);
-        }
+
+
+            
+
+        //}
 
 	 Navigation::activateItem('/admin/kursadmin');
         
@@ -47,6 +50,7 @@ class ShowController extends StudIPController {
 	if (Request::option('select_sem_id')) {
     		Request::set('cid', Request::option('select_sem_id'));
 	}
+	PageLayout::setTitle("Teilnehmerverwaltung - ".  $this->seminar->getName());
 
 	$this->users = $this->seminar->getMembers('autor');
 	$this->tutors = $this->seminar->getMembers('tutor');
@@ -170,92 +174,15 @@ class ShowController extends StudIPController {
         	}
         
         } 
-
-        //liste wieder anzeigen
-       /** 
-	if ($parent == 'edit') {
-            $this->redirect('show/edit/' . $user_id);
-        } else {
-            $this->redirect('show/'.$parent);
- 		//$this->redirect('show/'.$parent);
-        }
-	 **/
 				
 	}
 
-    function reduce_diakritika_from_iso88591($text) {
-        $text = str_replace(array("ä","Ä","ö","Ö","ü","Ü","ß"), array('a','Ae','o','Oe','u','Ue','ss'), $text);
-        $text = str_replace(array('À','Á','Â','Ã','Å','Æ'), 'A' , $text);
-        $text = str_replace(array('à','á','â','ã','å','æ'), 'a' , $text);
-        $text = str_replace(array('È','É','Ê','Ë'), 'E' , $text);
-        $text = str_replace(array('è','é','ê','ë'), 'e' , $text);
-        $text = str_replace(array('Ì','Í','Î','Ï'), 'I' , $text);
-        $text = str_replace(array('ì','í','î','ï'), 'i' , $text);
-        $text = str_replace(array('Ò','Ó','Õ','Ô','Ø'), 'O' , $text);
-        $text = str_replace(array('ò','ó','ô','õ','ø'), 'o' , $text);
-        $text = str_replace(array('Ù','Ú','Û'), 'U' , $text);
-        $text = str_replace(array('ù','ú','û'), 'u' , $text);
-        $text = str_replace(array('Ç','ç','Ð','Ñ','Ý','ñ','ý','ÿ'), array('C','c','D','N','Y','n','y','y') , $text);
-        return $text;
-    }
 
-    function CSV2Array($content, $delim = ';', $encl = '"', $optional = 1) {
-        if ($content[strlen($content)-1]!="\r" && $content[strlen($content)-1]!="\n")
-            $content .= "\r\n";
-
-        $reg = '/(('.$encl.')'.($optional?'?(?(2)':'(').
-        '[^'.$encl.']*'.$encl.'|[^'.$delim.'\r\n]*))('.$delim.
-        '|[\r\n]+)/smi';
-
-        preg_match_all($reg, $content, $treffer);
-        $linecount = 0;
-
-        for ($i = 0; $i<=count($treffer[3]);$i++) {
-            $liste[$linecount][] = trim($treffer[1][$i],$encl);
-            if ($treffer[3][$i] != $delim) $linecount++;
-        }
-        return $liste;
-    }
-
-    function map_direkt($field, $value){
-        if(isset($this->date_mapping[$field]['table'])){
-            return array($this->date_mapping[$field]['table'].'.'.$field => $value);
-        }
-    }
-
-    function map_anrede($field, $value){
-        return $this->map_direkt('geschlecht', (strtolower($value) == 'frau' ? 1 : 0));
-    }
-
-    function map_passwort_klartext($field, $value){
-        return $this->map_direkt('password', md5($value));
-    }
-
-
-    function compat_file_get_contents($filename){
-        if (function_exists('file_get_contents')){
-            return @file_get_contents($filename);
-        } else {
-            $file = @file($file);
-            return (!$file ? false : implode('', $file));
-        }
-    }
-
-    function detect_datafields($headings){
-        $datafields = array_diff(array_flip($headings), array_keys($this->date_mapping));
-        $db = new DB_Seminar();
-        $found = array();
-        $query = "SELECT datafield_id,name FROM datafields WHERE object_type='user' AND name LIKE '%s'";
-        foreach($datafields as $df){
-            $db->queryf($query, $df);
-            if($db->next_record()){
-                $this->date_mapping[$df]['table'] = 'datafields.' . $db->f('datafield_id');
-                $found[] = $db->f('name');
+    public function course_action() {
+	 if ($this->seminar) {
+                PageLayout::postMessage(MessageBox::info(_('Sie haben einen Kurs ausgewählt.')));
             }
-        }
-        return $found;
-    }
-
+    }  
 
 
     // customized #url_for for plugins
